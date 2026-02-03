@@ -1,6 +1,6 @@
 ## TODO:
-## Student Name:
-## Student ID: 
+## Student Name: Mateo Pedraza
+## Student ID: 218659094
 
 # Meeting Slot Suggestion Lab Repository
 
