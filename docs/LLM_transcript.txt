@@ -1,6 +1,7 @@
-## Student Name:
-## Student ID: 
+## Student Name: Mateo Pedraza
+## Student ID: 218659094
 
+Using GPT-5.2-Codex Medium
 
 --------------------------------------------------
 
