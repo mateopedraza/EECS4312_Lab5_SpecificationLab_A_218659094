@@ -153,3 +153,80 @@ Ran pytest -v
 Result: 9 passed
 "
 --------------------------------------------------
+
+Prompt 6 "There is a new requirement lets implement it and add new tests:
+Meetings scheduled on Fridays must not start after 15:00. 
+This requirement applies in addition to all previously described behaviour. 
+If a meeting would otherwise be valid but starts after 15:00 on a friday, 
+it must be excluded from the returned results. Update your solution, 
+tests, and documents to incorporote this requirement."
+
+LLM response"
+
+diff --git a//Users/mateopedraza/Documents/GitHub/EECS4312_Lab5_SpecificationLab_A_218659094/src/solution.py b//Users/mateopedraza/Documents/GitHub/EECS4312_Lab5_SpecificationLab_A_218659094/src/solution.py
+--- a//Users/mateopedraza/Documents/GitHub/EECS4312_Lab5_SpecificationLab_A_218659094/src/solution.py
++++ b//Users/mateopedraza/Documents/GitHub/EECS4312_Lab5_SpecificationLab_A_218659094/src/solution.py
+@@ -11,2 +11,3 @@
+ from typing import List, Dict
++from datetime import datetime
+ 
+@@ -37,2 +38,3 @@
+     BUFFER_AFTER_EVENT = 15
++    FRIDAY_LATEST_START = 15 * 60  # 15:00
+ 
+@@ -51,2 +53,15 @@
+ 
++    def is_friday(day_value: str) -> bool:
++        if not isinstance(day_value, str) or not day_value:
++            return False
++        normalized = day_value.strip().lower()
++        if normalized in {"fri", "friday"}:
++            return True
++        try:
++            # Accept ISO date strings like "2026-02-06"
++            parsed = datetime.strptime(normalized, "%Y-%m-%d")
++            return parsed.weekday() == 4
++        except ValueError:
++            return False
++
+     blocked_events: List[tuple[int, int]] = []
+@@ -68,2 +83,5 @@
+     latest_start = WORK_END - meeting_duration
++    if is_friday(day):
++        if FRIDAY_LATEST_START < latest_start:
++            latest_start = FRIDAY_LATEST_START
+     start = WORK_START
+
+diff --git a//Users/mateopedraza/Documents/GitHub/EECS4312_Lab5_SpecificationLab_A_218659094/tests/test_solution.py b//Users/mateopedraza/Documents/GitHub/EECS4312_Lab5_SpecificationLab_A_218659094/tests/test_solution.py
+--- a//Users/mateopedraza/Documents/GitHub/EECS4312_Lab5_SpecificationLab_A_218659094/tests/test_solution.py
++++ b//Users/mateopedraza/Documents/GitHub/EECS4312_Lab5_SpecificationLab_A_218659094/tests/test_solution.py
+@@ -106 +106,17 @@
+     assert "11:15" in slots
++
++def test_friday_blocks_start_times_after_1500_with_day_abbrev():
++    events = []
++    slots = suggest_slots(events, meeting_duration=30, day="Fri")
++
++    assert "15:00" in slots
++    assert "15:15" not in slots
++    assert "16:00" not in slots
++
++def test_friday_blocks_start_times_after_1500_with_date():
++    events = []
++    slots = suggest_slots(events, meeting_duration=60, day="2026-02-06")
++
++    assert "14:00" in slots
++    assert "15:00" in slots
++    assert "15:15" not in slots
+
+diff --git a//Users/mateopedraza/Documents/GitHub/EECS4312_Lab5_SpecificationLab_A_218659094/README.md b//Users/mateopedraza/Documents/GitHub/EECS4312_Lab5_SpecificationLab_A_218659094/README.md
+--- a//Users/mateopedraza/Documents/GitHub/EECS4312_Lab5_SpecificationLab_A_218659094/README.md
++++ b//Users/mateopedraza/Documents/GitHub/EECS4312_Lab5_SpecificationLab_A_218659094/README.md
+@@ -9,3 +9,3 @@
+ ## System Description
+-You are asked to implement a Python function that suggests possible meeting time slots for a given day. The function takes as input a list of existing calendar events for that day and a desired meeting duration. Its goal is to return a list of valid start times at which the meeting could be scheduled. A valid time slot should respect typical working hours and should not conflict with existing events. If no suitable time slots are available, the function should return an empty list. You may assume that time values are provided in a standard string format (e.g., “09:30”), and you are free to choose an appropriate internal representation. You may use ChatGPT to assist with reasoning about the problem, generating code, or writing tests. 
++You are asked to implement a Python function that suggests possible meeting time slots for a given day. The function takes as input a list of existing calendar events for that day and a desired meeting duration. Its goal is to return a list of valid start times at which the meeting could be scheduled. A valid time slot should respect typical working hours and should not conflict with existing events. Meetings scheduled on Fridays must not start after 15:00. If no suitable time slots are available, the function should return an empty list. You may assume that time values are provided in a standard string format (e.g., “09:30”), and you are free to choose an appropriate internal representation. You may use ChatGPT to assist with reasoning about the problem, generating code, or writing tests. 
+ 
+"
+
+--------------------------------------------------
