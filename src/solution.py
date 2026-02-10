@@ -9,6 +9,7 @@ on a given day, taking into account working hours, and possible specific constra
 for full requirements.
 """
 from typing import List, Dict
+from datetime import datetime
 
 def suggest_slots(
     events: List[Dict[str, str]],
@@ -35,6 +36,7 @@ def suggest_slots(
     LUNCH_END = 13 * 60   # 13:00
     SLOT_STEP = 15
     BUFFER_AFTER_EVENT = 15
+    FRIDAY_LATEST_START = 15 * 60  # 15:00
 
     def parse_time(value: str) -> int:
         parts = value.split(":")
@@ -48,6 +50,19 @@ def suggest_slots(
 
     def format_time(minutes: int) -> str:
         return f"{minutes // 60:02d}:{minutes % 60:02d}"
+
+    def is_friday(day_value: str) -> bool:
+        if not isinstance(day_value, str) or not day_value:
+            return False
+        normalized = day_value.strip().lower()
+        if normalized in {"fri", "friday"}:
+            return True
+        try:
+            # Accept ISO date strings like "2026-02-06"
+            parsed = datetime.strptime(normalized, "%Y-%m-%d")
+            return parsed.weekday() == 4
+        except ValueError:
+            return False
 
     blocked_events: List[tuple[int, int]] = []
     for event in events:
@@ -66,6 +81,9 @@ def suggest_slots(
 
     slots: List[str] = []
     latest_start = WORK_END - meeting_duration
+    if is_friday(day):
+        if FRIDAY_LATEST_START < latest_start:
+            latest_start = FRIDAY_LATEST_START
     start = WORK_START
     while start <= latest_start:
         end = start + meeting_duration

@@ -104,3 +104,19 @@ def test_back_to_back_events_block_gap():
     assert "10:00" not in slots
     assert "10:30" not in slots
     assert "11:15" in slots
+
+def test_friday_blocks_start_times_after_1500_with_day_abbrev():
+    events = []
+    slots = suggest_slots(events, meeting_duration=30, day="Fri")
+
+    assert "15:00" in slots
+    assert "15:15" not in slots
+    assert "16:00" not in slots
+
+def test_friday_blocks_start_times_after_1500_with_date():
+    events = []
+    slots = suggest_slots(events, meeting_duration=60, day="2026-02-06")
+
+    assert "14:00" in slots
+    assert "15:00" in slots
+    assert "15:15" not in slots
